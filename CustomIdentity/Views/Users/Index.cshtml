@@ -1,0 +1,45 @@
+﻿@using CustomIdentity.ViewModels
+@model IEnumerable<UserViewModel>
+
+@{
+    ViewData["Title"] = "Users";
+}
+
+<h1>Users</h1>
+
+
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>UserName</th>
+            <th>Email</th>
+            <th>Address</th>
+            <th>Number</th>
+            <th>Roles</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var user in Model)
+        {
+            <tr>
+                <td>@user.Name</td>
+                <td>@user.UserName</td>
+                <td>@user.Email</td>
+                <td>@user.Address</td>
+                <td>@user.Number</td>
+                <td>@string.Join(", ", user.Roles ?? Enumerable.Empty<string>())</td>
+                <td>
+                    <a href="@Url.Action("Edit", new { id = user.Id })" class="btn btn-primary">Edit</a>
+                    <a href="@Url.Action("Delete", new { id = user.Id })" class="btn btn-danger">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<p>
+    <a href="@Url.Action("Register", "Account")" class="btn btn-success">Create New User</a>
+</p>

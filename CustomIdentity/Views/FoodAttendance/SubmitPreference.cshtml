@@ -1,0 +1,47 @@
+﻿@model FoodAttendanceViewModel
+
+@{
+    ViewData["Title"] = "Food Preference";
+}
+
+
+<div class="text-center ">
+    <h2>Food Preference</h2>
+<form method="post" asp-action="SubmitPreference">
+    <div>
+        <label>
+                <input type="radio" asp-for="Preference" id="vegCheckbox" value="false" checked /> Veg
+        </label>
+        <label>
+            <input type="radio" asp-for="Preference" id="nonVegCheckbox" value="true" /> Non-Veg
+        </label>
+    </div>
+    <button type="submit" class="btn btn-primary" id="submitbtn">Submit</button>
+
+    <br />
+    <br />
+    @if (ViewBag.TodayResponsesCount != null)
+    {
+        <h3>Total Responses Today</h3>
+        <p>Total Food Attendance Responses Today: @ViewBag.TodayResponsesCount</p>
+        <p>Veg Count: @ViewBag.VegCountToday  Non-Veg count: @ViewBag.NonVegCountToday</p>
+    }
+</form>
+</div>
+
+
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var nonVegCheckbox = document.getElementById("nonVegCheckbox");
+            var vegCheckbox = document.getElementById("vegCheckbox");
+            var today = new Date().getDay();
+            var date = new Date().getHours();
+
+            
+        });
+    </script>
+}
+
+

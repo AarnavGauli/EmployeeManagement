@@ -1,0 +1,21 @@
+﻿@model List<CustomIdentity.ViewModels.LeaveDetailVM>
+
+<h1>User Leaves Taken</h1>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Username</th>
+            <th>Total Leaves Taken</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.UserName</td>
+                <td>@item.LeavesTaken</td>
+            </tr>
+        }
+    </tbody>
+</table>

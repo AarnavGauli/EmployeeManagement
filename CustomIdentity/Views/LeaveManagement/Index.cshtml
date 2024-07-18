@@ -1,0 +1,76 @@
+﻿@model IEnumerable<CustomIdentity.ViewModels.LeaveDetailVM>
+
+@{
+    ViewData["Title"] = "Leave Requests";
+}
+
+<h1>Leave Requests</h1>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>UserName</th>
+            <th>LeaveReason</th>
+            <th>StartDate</th>
+            <th>EndDate</th>
+            <th>Status</th>
+            @if (User.IsInRole("Admin"))
+            {
+                <th>Actions</th>
+            }
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.UserName)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.LeaveReason)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.StartDate)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.EndDate)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Status)
+                </td>
+                @if (User.IsInRole("Admin"))
+                {
+                    <td>
+                        <form asp-action="Approve" method="post" style="display:inline;">
+                            <input type="hidden" name="id" value="@item.Id" />
+                            <button type="submit" class="btn btn-success">Approve</button>
+                        </form>
+                        <form asp-action="Disapprove" method="post" style="display:inline;">
+                            <input type="hidden" name="id" value="@item.Id" />
+                            <button type="submit" class="btn btn-danger">Disapprove</button>
+                        </form>
+                    </td>
+                }
+
+            </tr>
+        }
+    </tbody>
+    <br />
+
+    @if (User.IsInRole("User"))
+    {
+        <h3>Total Leaves Taken: @ViewBag.ApprovedLeaveCount</h3>
+    }
+    
+        <a asp-action="Create" class="btn btn-primary">Create New Leave Request</a>
+        &nbsp;
+    @if (User.IsInRole("Admin"))
+    {
+        <a asp-action="List" class="btn btn-primary">View All Employees</a>
+    }
+</table>
+
+
+
+
