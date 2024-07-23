@@ -82,7 +82,7 @@ AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 RecurringJob.AddOrUpdate<SmsController>(
     "send-sms-job",
     controller => controller.SendScheduledSms(),
-    "15 8 * * 1-5"); // Cron expression for weekdays at 5:15 AM UTC
+    "15 4 * * 1-5"); // Cron expression for weekdays at 5:15 AM UTC
 
 
 app.MapControllerRoute(
@@ -90,16 +90,3 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();
-// Method to configure Hangfire jobs
-/*void ConfigureJobs(IApplicationBuilder app)
-{
-    using (var scope = app.ApplicationServices.CreateScope())
-    {
-        var services = scope.ServiceProvider;
-        var jobScheduler = services.GetRequiredService<IBackgroundJobClient>(); // Make sure to register Hangfire services
-        RecurringJob.AddOrUpdate<SmsController>(
-            "send-sms-job",
-            controller => controller.SendScheduledSms(),
-            "15 5 * * 1-5"); // Cron expression for weekdays at 5:15 AM UTC
-    }
-}*/
