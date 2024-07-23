@@ -2,6 +2,8 @@
 
 @{
     ViewData["Title"] = "Leave Requests";
+    int currentPage = (int)ViewData["CurrentPage"];
+    int totalPages = (int)ViewData["TotalPages"];
 }
 
 <h1>Leave Requests</h1>
@@ -13,6 +15,8 @@
             <th>LeaveReason</th>
             <th>StartDate</th>
             <th>EndDate</th>
+            <th>StartTime</th>
+            <th>EndTime</th>
             <th>Status</th>
             @if (User.IsInRole("Admin"))
             {
@@ -25,19 +29,25 @@
         {
             <tr>
                 <td>
-                    @Html.DisplayFor(modelItem => item.UserName)
+                    @item.UserName
                 </td>
                 <td>
-                    @Html.DisplayFor(modelItem => item.LeaveReason)
+                    @item.LeaveReason
                 </td>
                 <td>
-                    @Html.DisplayFor(modelItem => item.StartDate)
+                    @item.StartDate.ToString("yyyy-MM-dd")
                 </td>
                 <td>
-                    @Html.DisplayFor(modelItem => item.EndDate)
+                    @item.EndDate.ToString("yyyy-MM-dd")
                 </td>
                 <td>
-                    @Html.DisplayFor(modelItem => item.Status)
+                    @item.StartTime
+                </td>
+                <td>
+                    @item.EndTime
+                </td>
+                <td>
+                    @item.Status
                 </td>
                 @if (User.IsInRole("Admin"))
                 {
@@ -70,6 +80,20 @@
         <a asp-action="List" class="btn btn-primary">View All Employees</a>
     }
 </table>
+
+<div class="pagination">
+    @if (currentPage > 1)
+    {
+        <a href="@Url.Action("Index", new { page = currentPage - 1 })">Previous</a>
+    }
+
+    Page @currentPage of @totalPages
+
+    @if (currentPage < totalPages)
+    {
+        <a href="@Url.Action("Index", new { page = currentPage + 1 })">Next</a>
+    }
+</div>
 
 
 

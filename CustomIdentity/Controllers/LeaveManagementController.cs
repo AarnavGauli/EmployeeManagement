@@ -5,9 +5,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Globalization;
-using System.Linq;
-using System.Threading.Tasks;
 
 [Authorize]
 public class LeaveManagementController : Controller
@@ -25,8 +22,10 @@ public class LeaveManagementController : Controller
 
     // Index action to list leave requests
     [Authorize]
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(int page = 1)
     {
+        int pageSize = 10;
+
         var user = await _userManager.GetUserAsync(User);
 
         // Check if the user is an admin
@@ -40,6 +39,9 @@ public class LeaveManagementController : Controller
             leaveDetailsQuery = leaveDetailsQuery.Where(l => l.UserName == user!.UserName);
         }
 
+        // Order by StartDate in descending order to show recently added requests on top
+        leaveDetailsQuery = leaveDetailsQuery.OrderByDescending(l => l.StartDate);
+
         var leaveDetails = await leaveDetailsQuery
             .Select(l => new LeaveDetailVM
             {
@@ -48,6 +50,8 @@ public class LeaveManagementController : Controller
                 LeaveReason = l.LeaveReason,
                 StartDate = l.StartDate,
                 EndDate = l.EndDate,
+                StartTime = l.StartTime,
+                EndTime = l.EndTime,
                 Status = l.Status
             }).ToListAsync();
 
@@ -55,6 +59,14 @@ public class LeaveManagementController : Controller
         .CountAsync(l => l.UserName == user!.UserName && l.Status == "Approved");
 
         ViewBag.ApprovedLeaveCount = approvedLeavesCount;
+
+        // Calculate total number of pages
+        int totalItems = await leaveDetailsQuery.CountAsync();
+        int totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+
+        // Pass data to the view
+        ViewData["CurrentPage"] = page;
+        ViewData["TotalPages"] = totalPages;
 
         return View(leaveDetails);
     }
@@ -108,9 +120,9 @@ public class LeaveManagementController : Controller
             {
                 UserName = model.UserName,
                 LeaveReason = model.LeaveReason,
-                StartDate = model.StartDate == default ? DateTime.UtcNow : model.StartDate.ToUniversalTime(),
+                StartDate = model.StartDate == default ? DateTime.UtcNow.Date : model.StartDate.Date.ToUniversalTime(),
+                EndDate = model.EndDate == default ? DateTime.UtcNow.Date : model.EndDate.Date.ToUniversalTime(),
                 StartTime = model.StartTime,
-                EndDate = model.EndDate == default ? DateTime.UtcNow : model.EndDate.ToUniversalTime(),
                 EndTime = model.EndTime,
                 LeaveType = model.LeaveType,
                 Status = "Pending"
