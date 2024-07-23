@@ -35,6 +35,5 @@ public class SparrowSmsService
             // Log the error or handle accordingly
             return "error";
         }
-        return "ok";
     }
 }

@@ -27,8 +27,8 @@ public class SmsController : Controller
 
             string message = $"Total head count: {totalAttendance}. Veg: {vegCount}, Non-Veg: {nonVegCount}.";
 
-            string token = _configuration["SparrowSms:token"];
-            string from = _configuration["SparrowSms:from"];
+            string token = _configuration["SparrowSms:token"]!;
+            string from = _configuration["SparrowSms:from"]!;
 
             string smsResult = await _smsService.SendSms(from, token, number, message);
 
