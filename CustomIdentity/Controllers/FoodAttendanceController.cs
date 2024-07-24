@@ -107,4 +107,20 @@ public class FoodAttendanceController : Controller
 
         return View();
     }
+
+
+    [Authorize(Roles = "User, Admin")]
+    public async Task<IActionResult> AttendanceSummary()
+    {
+        var summaries = await _context.FoodAttendances
+            .GroupBy(fp => fp.Date.Date) // Group by date 
+            .Select(g => new
+            {
+                Date = g.Key,
+                TotalPreferences = g.Count()
+            })
+            .ToListAsync();
+
+        return Json(summaries);
+    }
 }

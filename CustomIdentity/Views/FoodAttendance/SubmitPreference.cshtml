@@ -4,42 +4,89 @@
     ViewData["Title"] = "Food Preference";
 }
 
-
-<div class="text-center ">
+<div class="text-center">
     <h2>Food Preference</h2>
-<form method="post" asp-action="SubmitPreference">
-    <div>
-        <label>
-                <input type="radio" asp-for="Preference" id="vegCheckbox" value="false" checked /> Veg
-        </label>
-        <label>
-            <input type="radio" asp-for="Preference" id="nonVegCheckbox" value="true" /> Non-Veg
-        </label>
-    </div>
-    <button type="submit" class="btn btn-primary" id="submitbtn">Submit</button>
 
+    <form method="post" asp-action="SubmitPreference">
+        <div>
+            <label>
+                <input type="radio" asp-for="Preference" id="vegCheckbox" value="false" checked /> Veg
+            </label>
+            <label>
+                <input type="radio" asp-for="Preference" id="nonVegCheckbox" value="true" /> Non-Veg
+            </label>
+        </div>
+        <button type="submit" class="btn btn-primary" id="submitbtn">Submit</button>
+
+        <br />
+        <br />
+        <br />
+        @if (ViewBag.TodayResponsesCount != null)
+        {
+            <h3>Total Responses Today</h3>
+            <p>Total Food Attendance Responses Today: @ViewBag.TodayResponsesCount</p>
+            <p>Veg Count: @ViewBag.VegCountToday  Non-Veg Count: @ViewBag.NonVegCountToday</p>
+        }
+    </form>
     <br />
     <br />
-    @if (ViewBag.TodayResponsesCount != null)
-    {
-        <h3>Total Responses Today</h3>
-        <p>Total Food Attendance Responses Today: @ViewBag.TodayResponsesCount</p>
-        <p>Veg Count: @ViewBag.VegCountToday  Non-Veg count: @ViewBag.NonVegCountToday</p>
-    }
-</form>
+    <h3>Food Preference Trends</h3>
+    <canvas id="attendanceChart" width="400" height="200"></canvas>
 </div>
 
-
-
 @section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            var nonVegCheckbox = document.getElementById("nonVegCheckbox");
-            var vegCheckbox = document.getElementById("vegCheckbox");
-            var today = new Date().getDay();
-            var date = new Date().getHours();
+            var ctx = document.getElementById('attendanceChart').getContext('2d');
 
-            
+            // Fetch data from the server
+            fetch('@Url.Action("AttendanceSummary", "FoodAttendance")')
+                .then(response => response.json())
+                .then(data => {
+                    // Limit to 15 most recent data points
+                    var limitedData = data.slice(-30);
+
+                    // Pad data with null values if there are fewer than 15 data points
+                    /*while (limitedData.length < 15) {
+                        limitedData.unshift({ date: null, totalPreferences: 0 }); // Adjust as needed
+                    */
+
+                    var labels = limitedData.map(item => item.date ? new Date(item.date).toLocaleDateString() : 0);
+                    var counts = limitedData.map(item => item.totalPreferences);
+
+                    new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: 'Total Preferences',
+                                data: counts,
+                                borderColor: 'rgba(75, 192, 192, 1)',
+                                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+
+                            scales: {
+                                x: {
+                                    beginAtZero: true, 
+                                    maxTicksLimit: 30 // Ensure no more than 15 ticks on the x-axis
+                                },
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        stepSize: 2, // Adjust as needed
+                                        maxTicksLimit: 20 // Ensure no more than 15 ticks on the y-axis
+                                    }
+                                }
+                            }
+                        }
+                    });
+                })
+                .catch(error => console.error('Error fetching data:', error));
         });
     </script>
 }

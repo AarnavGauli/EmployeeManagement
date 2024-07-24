@@ -102,8 +102,8 @@ public class LeaveManagementController : Controller
         var model = new LeaveDetailVM
         {
             UserName = user!.UserName,
-            StartDate = DateTime.Today,
-            EndDate = DateTime.Today
+            StartDate = DateTime.UtcNow.Date, // Store in UTC
+            EndDate = DateTime.UtcNow.Date
         };
             
         return View(model);
@@ -120,8 +120,8 @@ public class LeaveManagementController : Controller
             {
                 UserName = model.UserName,
                 LeaveReason = model.LeaveReason,
-                StartDate = model.StartDate == default ? DateTime.UtcNow.Date : model.StartDate.Date.ToUniversalTime(),
-                EndDate = model.EndDate == default ? DateTime.UtcNow.Date : model.EndDate.Date.ToUniversalTime(),
+                StartDate = DateTime.SpecifyKind(model.StartDate, DateTimeKind.Utc),
+                EndDate = DateTime.SpecifyKind(model.EndDate, DateTimeKind.Utc),
                 StartTime = model.StartTime,
                 EndTime = model.EndTime,
                 LeaveType = model.LeaveType,
