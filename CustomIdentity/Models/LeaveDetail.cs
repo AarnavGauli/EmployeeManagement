@@ -13,6 +13,7 @@ public class LeaveDetail
     public string? LeaveReason { get; set; }
     public int LeavesTaken { get; set; }
     public int LeavesRemaining { get; set; }
+    public string? LeaveCategory { get; set; }
 
     // Add more properties as needed
 

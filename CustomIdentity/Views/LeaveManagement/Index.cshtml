@@ -7,79 +7,71 @@
 }
 
 <h1>Leave Requests</h1>
-
-<table class="table">
-    <thead>
-        <tr>
-            <th>UserName</th>
-            <th>LeaveReason</th>
-            <th>StartDate</th>
-            <th>EndDate</th>
-            <th>StartTime</th>
-            <th>EndTime</th>
-            <th>Status</th>
-            @if (User.IsInRole("Admin"))
-            {
-                <th>Actions</th>
-            }
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
+<br />
+<div class="table-responsive">
+    <table class="table table-striped table-bordered">
+        @if (User.IsInRole("User"))
         {
-            <tr>
-                <td>
-                    @item.UserName
-                </td>
-                <td>
-                    @item.LeaveReason
-                </td>
-                <td>
-                    @item.StartDate.ToString("yyyy-MM-dd")
-                </td>
-                <td>
-                    @item.EndDate.ToString("yyyy-MM-dd")
-                </td>
-                <td>
-                    @item.StartTime
-                </td>
-                <td>
-                    @item.EndTime
-                </td>
-                <td>
-                    @item.Status
-                </td>
-                @if (User.IsInRole("Admin"))
-                {
-                    <td>
-                        <form asp-action="Approve" method="post" style="display:inline;">
-                            <input type="hidden" name="id" value="@item.Id" />
-                            <button type="submit" class="btn btn-success">Approve</button>
-                        </form>
-                        <form asp-action="Disapprove" method="post" style="display:inline;">
-                            <input type="hidden" name="id" value="@item.Id" />
-                            <button type="submit" class="btn btn-danger">Disapprove</button>
-                        </form>
-                    </td>
-                }
-
-            </tr>
+            <h3>Total Leaves Taken: @ViewBag.ApprovedLeaveCount</h3>
         }
-    </tbody>
-    <br />
-
-    @if (User.IsInRole("User"))
-    {
-        <h3>Total Leaves Taken: @ViewBag.ApprovedLeaveCount</h3>
-    }
-    
+        <br />
         <a asp-action="Create" class="btn btn-primary">Create New Leave Request</a>
         &nbsp;
-    @if (User.IsInRole("Admin"))
-    {
-        <a asp-action="List" class="btn btn-primary">View All Employees</a>
-    }
-</table>
+        @if (User.IsInRole("Admin"))
+        {
+            <a asp-action="List" class="btn btn-primary">View All Employees</a>
+        }
+        <br />
+        <thead>
+            <tr>
+                <th>UserName</th>
+                <th>LeaveReason</th>
+                <th style="width: 150px;">StartDate</th>
+                <th style="width: 150px;">EndDate</th>
+                <th>LeaveCategory</th>
+                <th>LeaveType</th>
+                <th style="width: 150px;">Duration</th>
+                <th>Status</th>
+                @if (User.IsInRole("Admin"))
+                {
+                    <th>Actions</th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.UserName</td>
+                    <td>@item.LeaveReason</td>
+                    <td style="width:auto">@item.StartDate.ToString("yyyy-MM-dd")</td>
+                    <td>@item.EndDate.ToString("yyyy-MM-dd")</td>
+                    <td>@item.LeaveCategory</td>
+                    <td>@item.LeaveType</td>
+                    <td style="width:auto">@item.StartTime - @item.EndTime</td>
+                    <td>@item.Status</td>
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <td>
+                            <form asp-action="Approve" method="post" style="width:auto">
+                                <input type="hidden" name="id" value="@item.Id" />
+                                <button type="submit" class="btn btn-success btn-sm">Approve</button>
+                            </form>
+                            <form asp-action="Disapprove" method="post" style="width:auto">
+                                <input type="hidden" name="id" value="@item.Id" />
+                                <button type="submit" class="btn btn-danger btn-sm">Disapprove</button>
+                            </form>
+                        </td>
+                    }
+                </tr>
+            }
+        </tbody>
+        <br />
+    </table>
+</div>
+
+    
+
 
 <div class="pagination">
     @if (currentPage > 1)

@@ -1,5 +1,6 @@
 using CustomIdentity.Data;
 using CustomIdentity.Models;
+using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
 using Hangfire;
 using Hangfire.PostgreSql;
 using Microsoft.AspNetCore.Identity;
@@ -43,6 +44,9 @@ builder.Services.AddHangfire(configuration =>
 
 builder.Services.AddHangfireServer();
 
+// Register EmailService
+builder.Services.AddSingleton<EmailService>();
+
 // Register the RoleSeeder service
 builder.Services.AddScoped<RoleSeeder>();
 
@@ -81,8 +85,7 @@ AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 RecurringJob.AddOrUpdate<SmsController>(
     "send-sms-job",
     controller => controller.SendScheduledSms(),
-    "15 4 * * 1-5"); // Cron expression for weekdays at 5:15 AM UTC
-
+    "15 5 * * 1-5"); // Cron expression for weekdays at 5:15 AM UTC
 
 app.MapControllerRoute(
     name: "default",

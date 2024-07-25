@@ -24,6 +24,7 @@ namespace CustomIdentity.ViewModels
         public int LeavesTaken { get; set; }
 
         public string? LeaveType { get; set; }
+        public string? LeaveCategory { get; set; }
         public string? Status { get; set; }
     }
 }

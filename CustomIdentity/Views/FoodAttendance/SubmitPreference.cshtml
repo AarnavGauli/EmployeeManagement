@@ -8,15 +8,18 @@
     <h2>Food Preference</h2>
 
     <form method="post" asp-action="SubmitPreference">
-        <div>
-            <label>
+        <div class="btn-group btn-group-toggle" data-toggle="buttons">
+            <label class="btn btn-outline-primary btn-lg">
                 <input type="radio" asp-for="Preference" id="vegCheckbox" value="false" checked /> Veg
             </label>
-            <label>
+            <label class="btn btn-outline-primary btn-lg">
                 <input type="radio" asp-for="Preference" id="nonVegCheckbox" value="true" /> Non-Veg
             </label>
         </div>
+        <br />
         <button type="submit" class="btn btn-primary" id="submitbtn">Submit</button>
+
+        
 
         <br />
         <br />
@@ -37,6 +40,28 @@
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var nonVegCheckbox = document.getElementById("nonVegCheckbox");
+            var vegCheckbox = document.getElementById("vegCheckbox"); // Corrected ID
+
+            var today = new Date().getDay();
+            var hour = new Date().getHours();
+
+            // Disable non-veg checkbox if it's not Friday (5)
+            if (today !== 5) {
+                nonVegCheckbox.disabled = true;
+            }
+
+            // Disable both checkboxes after 1 PM (13:00 hours)
+            if (hour > 11) {
+                submitbtn.disabled = true;
+            }
+        });
+
+
+
+
+
         document.addEventListener("DOMContentLoaded", function () {
             var ctx = document.getElementById('attendanceChart').getContext('2d');
 

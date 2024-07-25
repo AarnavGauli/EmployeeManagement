@@ -11,13 +11,14 @@ public class LeaveManagementController : Controller
 {
     private readonly ApplicationDbContext _context;
     private readonly UserManager<AppUser> _userManager;
-    
+    private readonly EmailService _emailService;
 
-    public LeaveManagementController(ApplicationDbContext context, UserManager<AppUser> userManager)
+
+    public LeaveManagementController(ApplicationDbContext context, UserManager<AppUser> userManager, EmailService emailService)
     {
         _context = context;
         _userManager = userManager;
-      
+        _emailService = emailService;
     }
 
     // Index action to list leave requests
@@ -52,6 +53,8 @@ public class LeaveManagementController : Controller
                 EndDate = l.EndDate,
                 StartTime = l.StartTime,
                 EndTime = l.EndTime,
+                LeaveCategory = l.LeaveCategory,
+                LeaveType = l.LeaveType,
                 Status = l.Status
             }).ToListAsync();
 
@@ -124,12 +127,36 @@ public class LeaveManagementController : Controller
                 EndDate = DateTime.SpecifyKind(model.EndDate, DateTimeKind.Utc),
                 StartTime = model.StartTime,
                 EndTime = model.EndTime,
+                LeaveCategory = model.LeaveCategory,
                 LeaveType = model.LeaveType,
                 Status = "Pending"
             };
 
             _context.LeaveDetails.Add(leaveDetail);
             await _context.SaveChangesAsync();
+
+            string subject = $"Leave Request Submission from {model.UserName}";
+            string message = $"Dear Team,\n\n" +
+                         $"Please be informed that {model.UserName} has submitted a leave request with the following details:\n\n" +
+                         $"Reason for Leave: {model.LeaveReason}\n" +
+                         $"Leave Category: {model.LeaveCategory}\n" +
+                         $"Start Date: {model.StartDate.ToShortDateString()}\n" +
+                         $"End Date: {model.EndDate.ToShortDateString()}\n" +
+                         $"Leave Type: {model.LeaveType}\n";
+
+                        // Add StartTime and EndTime if LeaveType is HalfDay
+                        if (model.LeaveType == "Half Day")
+                        {
+                            message += $"Start Time: {model.StartTime}\n" +
+                                       $"End Time: {model.EndTime}\n";
+                        }
+
+                        // Closing message
+                    message += "\nKindly review and process this request at your earliest convenience.\n\n" +
+                               "Thank you,\n" +
+                                $"{model.UserName}";
+
+            await _emailService.SendEmailAsync("arnavgauli66@gmail.com", subject, message);
 
             return RedirectToAction(nameof(Index));
         }
