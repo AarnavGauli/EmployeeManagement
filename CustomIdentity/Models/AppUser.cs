@@ -13,5 +13,7 @@ namespace CustomIdentity.Models
         public string? Password { get; set; }
 
         public string? Number {  get; set; }
+
+        public bool IsDeleted { get; set; }
     }
 }

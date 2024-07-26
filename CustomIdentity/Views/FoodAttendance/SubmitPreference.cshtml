@@ -53,7 +53,7 @@
             }
 
             // Disable both checkboxes after 1 PM (13:00 hours)
-            if (hour > 11) {
+            if (hour > 13) {
                 submitbtn.disabled = true;
             }
         });
@@ -69,13 +69,11 @@
             fetch('@Url.Action("AttendanceSummary", "FoodAttendance")')
                 .then(response => response.json())
                 .then(data => {
-                    // Limit to 15 most recent data points
-                    var limitedData = data.slice(-30);
+                    // Sort data by date in ascending order
+                    data.sort((a, b) => new Date(a.date) - new Date(b.date));
 
-                    // Pad data with null values if there are fewer than 15 data points
-                    /*while (limitedData.length < 15) {
-                        limitedData.unshift({ date: null, totalPreferences: 0 }); // Adjust as needed
-                    */
+                    // Limit to the 30 most recent data points
+                    var limitedData = data.slice(-30);
 
                     var labels = limitedData.map(item => item.date ? new Date(item.date).toLocaleDateString() : 0);
                     var counts = limitedData.map(item => item.totalPreferences);
@@ -94,17 +92,16 @@
                         },
                         options: {
                             responsive: true,
-
                             scales: {
                                 x: {
-                                    beginAtZero: true, 
-                                    maxTicksLimit: 30 // Ensure no more than 15 ticks on the x-axis
+                                    beginAtZero: true,
+                                    maxTicksLimit: 30 // Ensure no more than 30 ticks on the x-axis
                                 },
                                 y: {
                                     beginAtZero: true,
                                     ticks: {
                                         stepSize: 2, // Adjust as needed
-                                        maxTicksLimit: 20 // Ensure no more than 15 ticks on the y-axis
+                                        maxTicksLimit: 20 // Ensure no more than 20 ticks on the y-axis
                                     }
                                 }
                             }
@@ -113,6 +110,7 @@
                 })
                 .catch(error => console.error('Error fetching data:', error));
         });
+
     </script>
 }
 

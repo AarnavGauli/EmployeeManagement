@@ -28,7 +28,7 @@
                 <th>LeaveReason</th>
                 <th style="width: 150px;">StartDate</th>
                 <th style="width: 150px;">EndDate</th>
-                <th>LeaveCategory</th>
+                @* <th>LeaveCategory</th> *@
                 <th>LeaveType</th>
                 <th style="width: 150px;">Duration</th>
                 <th>Status</th>
@@ -46,7 +46,7 @@
                     <td>@item.LeaveReason</td>
                     <td style="width:auto">@item.StartDate.ToString("yyyy-MM-dd")</td>
                     <td>@item.EndDate.ToString("yyyy-MM-dd")</td>
-                    <td>@item.LeaveCategory</td>
+                    @* <td>@item.LeaveCategory</td> *@
                     <td>@item.LeaveType</td>
                     <td style="width:auto">@item.StartTime - @item.EndTime</td>
                     <td>@item.Status</td>
@@ -86,7 +86,6 @@
         <a href="@Url.Action("Index", new { page = currentPage + 1 })">Next</a>
     }
 </div>
-
 
 
 

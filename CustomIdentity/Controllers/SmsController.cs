@@ -6,13 +6,15 @@ public class SmsController : Controller
 {
     private readonly IConfiguration _configuration;
     private readonly SparrowSmsService _smsService;
-    private readonly ApplicationDbContext _context; 
+    private readonly ApplicationDbContext _context;
+    private readonly EmailService _emailService;
 
-    public SmsController(SparrowSmsService smsService, IConfiguration configuration, ApplicationDbContext context)
+    public SmsController(SparrowSmsService smsService, IConfiguration configuration, ApplicationDbContext context, EmailService emailService)
     {
         _smsService = smsService;
         _configuration = configuration;
         _context = context;
+        _emailService = emailService;
     }
 
     public async Task SendScheduledSms()
@@ -34,7 +36,11 @@ public class SmsController : Controller
 
             if (smsResult == "error")
             {
-                // Handle error
+                await _emailService.SendEmailAsync("arnavgauli66@gmail.com", "Sms Not Delivered", "Sms failed to be delivered to KL.");
+            }
+            else
+            {
+                await _emailService.SendEmailAsync("arnavgauli66@gmail.com", "Sms Delivered", "Sms has been delivered to KL.");
             }
         }
     }

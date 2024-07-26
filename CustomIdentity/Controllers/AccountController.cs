@@ -23,12 +23,12 @@ namespace CustomIdentity.Controllers
 
         [HttpPost]
         public async Task<IActionResult> Login(LoginVM model)
-        {
+         {
             if (ModelState.IsValid)
             {
-                var user = await _userManager.FindByEmailAsync(model.UserName!);
+                var user = await _userManager.FindByNameAsync(model.UserName!);
 
-                if (user != null)
+                if (user != null && user.IsDeleted == false)
                 {
                     var result = await _signInManager.PasswordSignInAsync(user.UserName!, model.Password!, model.RememberMe, false);
 
@@ -57,7 +57,7 @@ namespace CustomIdentity.Controllers
                 var user = new AppUser
                 {
                     Name = model.Name,
-                    UserName = model.Email,
+                    UserName = model.Name,
                     Password = model.Password,
                     Email = model.Email,
                     Address = model.Address,
@@ -72,7 +72,7 @@ namespace CustomIdentity.Controllers
                         await _userManager.AddToRoleAsync(user, role);
                     }
 
-                    await _signInManager.SignInAsync(user, false);
+                    /*await _signInManager.SignInAsync(user, false);*/
                     return RedirectToAction("Index", "Users");
                 }
                 foreach (var error in result.Errors)

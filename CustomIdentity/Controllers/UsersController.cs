@@ -21,7 +21,7 @@ namespace CustomIdentity.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Index()
         {
-            var users = _userManager.Users.ToList();
+            var users = _userManager.Users.Where(u => !u.IsDeleted).ToList();
             var userViewModels = new List<UserViewModel>();
 
             foreach (var user in users)
@@ -112,7 +112,7 @@ namespace CustomIdentity.Controllers
             }
 
             var user = await _userManager.FindByIdAsync(id);
-            if (user == null)
+            if (user == null || user.IsDeleted)
             {
                 return NotFound();
             }
@@ -128,17 +128,17 @@ namespace CustomIdentity.Controllers
             });
         }
 
-        
-[HttpPost, ActionName("Delete")]
+        [HttpPost, ActionName("Delete")]
         public async Task<IActionResult> DeleteConfirmed(string id)
         {
             var user = await _userManager.FindByIdAsync(id);
-            if (user == null)
+            if (user == null || user.IsDeleted)
             {
                 return NotFound();
             }
 
-            var result = await _userManager.DeleteAsync(user);
+            user.IsDeleted = true;  // Mark the user as deleted
+            var result = await _userManager.UpdateAsync(user);
             if (result.Succeeded)
             {
                 return RedirectToAction(nameof(Index));
@@ -159,7 +159,5 @@ namespace CustomIdentity.Controllers
                 Number = user.Number
             });
         }
-
     }
-
 }

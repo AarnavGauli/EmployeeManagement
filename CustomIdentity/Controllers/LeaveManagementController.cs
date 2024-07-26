@@ -25,7 +25,7 @@ public class LeaveManagementController : Controller
     [Authorize]
     public async Task<IActionResult> Index(int page = 1)
     {
-        int pageSize = 10;
+        int pageSize = 7; // Number of items per page
 
         var user = await _userManager.GetUserAsync(User);
 
@@ -43,7 +43,14 @@ public class LeaveManagementController : Controller
         // Order by StartDate in descending order to show recently added requests on top
         leaveDetailsQuery = leaveDetailsQuery.OrderByDescending(l => l.StartDate);
 
+        // Calculate total number of items
+        int totalItems = await leaveDetailsQuery.CountAsync();
+        int totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+
+        // Fetch only the items for the current page
         var leaveDetails = await leaveDetailsQuery
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .Select(l => new LeaveDetailVM
             {
                 Id = l.Id,
@@ -53,21 +60,16 @@ public class LeaveManagementController : Controller
                 EndDate = l.EndDate,
                 StartTime = l.StartTime,
                 EndTime = l.EndTime,
-                LeaveCategory = l.LeaveCategory,
                 LeaveType = l.LeaveType,
                 Status = l.Status
             }).ToListAsync();
 
         var approvedLeavesCount = await _context.LeaveDetails
-        .CountAsync(l => l.UserName == user!.UserName && l.Status == "Approved");
+            .CountAsync(l => l.UserName == user!.UserName && l.Status == "Approved");
 
         ViewBag.ApprovedLeaveCount = approvedLeavesCount;
 
-        // Calculate total number of pages
-        int totalItems = await leaveDetailsQuery.CountAsync();
-        int totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
-
-        // Pass data to the view
+        // Pass pagination data to the view
         ViewData["CurrentPage"] = page;
         ViewData["TotalPages"] = totalPages;
 
@@ -78,13 +80,14 @@ public class LeaveManagementController : Controller
     {
         // Group by UserName and sum LeavesTaken
         var leaveTotals = await _context.LeaveDetails
+            .Where(ld => ld.Status == "Approved") // Filter by Approved status
             .GroupBy(ld => ld.UserName)
             .Select(g => new
             {
                 UserName = g.Key,
-                TotalLeavesTaken = g.Sum(ld =>ld.LeavesTaken)
+                TotalLeavesTaken = g.Count() // Count of approved leave requests per user
             })
-            .ToListAsync();
+        .ToListAsync();
 
         // Map to ViewModel
         var leaveDetailVMs = leaveTotals.Select(lt => new LeaveDetailVM

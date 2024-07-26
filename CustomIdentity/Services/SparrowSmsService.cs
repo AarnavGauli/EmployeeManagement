@@ -1,8 +1,4 @@
-﻿using System.Net.Http;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
-
-public class SparrowSmsService
+﻿public class SparrowSmsService
 {
     private readonly HttpClient _httpClient;
     private readonly IConfiguration _configuration;
@@ -16,8 +12,7 @@ public class SparrowSmsService
     public async Task<string> SendSms(string from, string token, string to, string text)
     {
         string parameters = $"?from={from}&to={to}&text={text}&token={token}";
-        //HttpResponseMessage response = await _httpClient.GetAsync($"http://api.sparrowsms.com/v2/sms/{parameters}");
-        //string msg = @"http://api.sparrowsms.com/v2/sms?from=CXNepal&to=9848580066&text=Test Message&token=v2_krziSPCh5gLoMZXKqILLIUY8Ut9.mIn9";
+
         string msg = @"http://api.sparrowsms.com/v2/sms?";
         msg += string.Format("from={0}&", from);//fromm
         msg += string.Format("to={0}&", to);//to
