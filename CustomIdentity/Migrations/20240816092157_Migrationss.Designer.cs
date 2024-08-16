@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CustomIdentity.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240726042534_AddIsDeleted")]
-    partial class AddIsDeleted
+    [Migration("20240816092157_Migrationss")]
+    partial class Migrationss
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -70,9 +70,6 @@ namespace CustomIdentity.Migrations
                         .HasColumnType("character varying(256)");
 
                     b.Property<string>("Number")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Password")
                         .HasColumnType("text");
 
                     b.Property<string>("PasswordHash")

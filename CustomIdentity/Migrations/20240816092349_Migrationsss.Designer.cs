@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CustomIdentity.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240717055122_NumStr")]
-    partial class NumStr
+    [Migration("20240816092349_Migrationsss")]
+    partial class Migrationsss
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -47,6 +47,9 @@ namespace CustomIdentity.Migrations
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("boolean");
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("boolean");
 
@@ -67,9 +70,6 @@ namespace CustomIdentity.Migrations
                         .HasColumnType("character varying(256)");
 
                     b.Property<string>("Number")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Password")
                         .HasColumnType("text");
 
                     b.Property<string>("PasswordHash")
@@ -143,6 +143,9 @@ namespace CustomIdentity.Migrations
 
                     b.Property<TimeSpan>("EndTime")
                         .HasColumnType("interval");
+
+                    b.Property<string>("LeaveCategory")
+                        .HasColumnType("text");
 
                     b.Property<string>("LeaveReason")
                         .HasColumnType("text");

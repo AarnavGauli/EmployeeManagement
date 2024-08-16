@@ -5,25 +5,18 @@
 namespace CustomIdentity.Migrations
 {
     /// <inheritdoc />
-    public partial class NumberAdd : Migration
+    public partial class Migrationsss : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<int>(
-                name: "Number",
-                table: "AspNetUsers",
-                type: "integer",
-                nullable: false,
-                defaultValue: 0);
+
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
-                name: "Number",
-                table: "AspNetUsers");
+
         }
     }
 }

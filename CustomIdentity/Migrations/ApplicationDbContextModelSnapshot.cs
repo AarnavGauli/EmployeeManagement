@@ -69,9 +69,6 @@ namespace CustomIdentity.Migrations
                     b.Property<string>("Number")
                         .HasColumnType("text");
 
-                    b.Property<string>("Password")
-                        .HasColumnType("text");
-
                     b.Property<string>("PasswordHash")
                         .HasColumnType("text");
 
