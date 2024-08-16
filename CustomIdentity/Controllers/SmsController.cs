@@ -19,9 +19,9 @@ public class SmsController : Controller
 
     public async Task SendScheduledSms()
     {
-        var numbers = await GetMobileNumbers();
+        /*var numbers = await GetMobileNumbers();
         foreach (var number in numbers)
-        {
+        {*/
             DateTime utcDateTime = DateTime.UtcNow.Date; // Use UTC time
             var totalAttendance = await _context.FoodAttendances.CountAsync(a => a.Date == utcDateTime);
             var vegCount = await _context.FoodAttendances.CountAsync(a => a.Date == utcDateTime && a.Preference == "Veg");
@@ -31,23 +31,25 @@ public class SmsController : Controller
 
             string token = _configuration["SparrowSms:token"]!;
             string from = _configuration["SparrowSms:from"]!;
+            string to = _configuration["SparrowSms:to"]!;
+            string Remail = _configuration["EmailSettings:ReceiverEmail"]!;
 
-            string smsResult = await _smsService.SendSms(from, token, number, message);
+            string smsResult = await _smsService.SendSms(from, token, to, message);
 
             if (smsResult == "error")
             {
-                await _emailService.SendEmailAsync("arnavgauli66@gmail.com", "Sms Not Delivered", "Sms failed to be delivered to KL.");
+                await _emailService.SendEmailAsync(Remail, "Sms Not Delivered", "Sms failed to be delivered to KL.");
             }
             else
             {
-                await _emailService.SendEmailAsync("arnavgauli66@gmail.com", "Sms Delivered", "Sms has been delivered to KL.");
+                await _emailService.SendEmailAsync(Remail, "Sms Delivered", "Sms has been delivered to KL.");
             }
         }
     }
 
-    public async Task<List<string>> GetMobileNumbers()
+    /*public async Task<List<string>> GetMobileNumbers()
     {
         await Task.Delay(100); // Simulating async database call
         return new List<string> { "9848580066" }; // Replace with actual data fetching logic
     }
-}
+}*/

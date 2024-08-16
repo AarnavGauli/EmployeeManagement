@@ -4,18 +4,21 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Configuration;
 
 [Authorize]
 public class FoodAttendanceController : Controller
 {
     private readonly ApplicationDbContext _context;
     private readonly UserManager<AppUser> _userManager;
+    private readonly IConfiguration _configuration;
 
     
-        public FoodAttendanceController(ApplicationDbContext context, UserManager<AppUser> userManager)
+        public FoodAttendanceController(ApplicationDbContext context, UserManager<AppUser> userManager, IConfiguration configuration)
     {
         _context = context;
         _userManager = userManager;
+        _configuration = configuration;
     }
 
     
@@ -27,6 +30,8 @@ public class FoodAttendanceController : Controller
             var today = DateTime.UtcNow.Date; // Use UTC date to avoid timezone issues
 
             var UserName = user!.Name;
+
+            
 
 
         // Get existing responses for the current day
@@ -104,6 +109,13 @@ public class FoodAttendanceController : Controller
             .Count();
 
         ViewBag.NonVegCountToday = nonvegCountToday;
+
+        // Extract the cron time (6:15 AM UTC from "15 6 * * 1-5")
+        string SubmissionTime = _configuration["SparrowSms:SubmissionTime"]!;
+        var parts = SubmissionTime.Split(' ');
+        string cronTime = $"{parts[1]}:{parts[0]}"; // This gives "06:15"
+
+        ViewBag.CronTime = cronTime;
 
         return View();
     }

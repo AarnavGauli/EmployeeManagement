@@ -12,13 +12,15 @@ public class LeaveManagementController : Controller
     private readonly ApplicationDbContext _context;
     private readonly UserManager<AppUser> _userManager;
     private readonly EmailService _emailService;
+    private readonly IConfiguration _configuration;
 
 
-    public LeaveManagementController(ApplicationDbContext context, UserManager<AppUser> userManager, EmailService emailService)
+    public LeaveManagementController(ApplicationDbContext context, UserManager<AppUser> userManager, EmailService emailService, IConfiguration configuration)
     {
         _context = context;
         _userManager = userManager;
         _emailService = emailService;
+        _configuration = configuration;
     }
 
     // Index action to list leave requests
@@ -138,6 +140,7 @@ public class LeaveManagementController : Controller
             _context.LeaveDetails.Add(leaveDetail);
             await _context.SaveChangesAsync();
 
+            string Remail = _configuration["EmailSettings:ReceiverEmail"]!;
             string subject = $"Leave Request Submission from {model.UserName}";
             string message = $"Dear Team,\n\n" +
                          $"Please be informed that {model.UserName} has submitted a leave request with the following details:\n\n" +
@@ -159,7 +162,7 @@ public class LeaveManagementController : Controller
                                "Thank you,\n" +
                                 $"{model.UserName}";
 
-            await _emailService.SendEmailAsync("arnavgauli66@gmail.com", subject, message);
+            await _emailService.SendEmailAsync(Remail, subject, message);
 
             return RedirectToAction(nameof(Index));
         }

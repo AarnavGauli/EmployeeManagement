@@ -17,8 +17,6 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
 
-
-
 // Add Identity services
 builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
 {
@@ -77,14 +75,19 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.UseHangfireDashboard(); // Enable the Hangfire dashboard
+app.UseHangfireDashboard(); // Enable the Hangfire dashboar`d
 
+// Enable legacy timestamp behavior for Npgsql
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
-// Schedule the SMS sending job every weekday at 5:15 AM UTC (which is 11 AM local time in UTC+5:45)
+
+// Retrieve cron expression from appsettings.json
+var SubmissionTime = builder.Configuration["SparrowSms:SubmissionTime"];
+
+// Schedule the SMS sending job using the cron expression from appsettings.json
 RecurringJob.AddOrUpdate<SmsController>(
     "send-sms-job",
     controller => controller.SendScheduledSms(),
-    "15 6 * * 1-5"); // Cron expression for weekdays at 5:15 AM UTC
+    SubmissionTime);
 
 app.MapControllerRoute(
     name: "default",

@@ -52,15 +52,23 @@
                 nonVegCheckbox.disabled = true;
             }
 
-            // Disable both checkboxes after 1 PM (13:00 hours)
-            if (hour > 13) {
+            var cronTime = "@ViewBag.CronTime"; // "06:15"
+            var cronHour = parseInt(cronTime.split(':')[0]);
+            var cronMinute = parseInt(cronTime.split(':')[1]);
+
+            if (hour >= cronHour ) {
                 submitbtn.disabled = true;
             }
+            // Disable both checkboxes after 1 PM (13:00 hours)
+            /*if (hour > 13) {
+                submitbtn.disabled = true;
+            }*/
         });
 
 
 
 
+        //Chart
 
         document.addEventListener("DOMContentLoaded", function () {
             var ctx = document.getElementById('attendanceChart').getContext('2d');
