@@ -58,7 +58,6 @@ namespace CustomIdentity.Controllers
                 {
                     Name = model.Name,
                     UserName = model.Name,
-                    Password = model.Password,
                     Email = model.Email,
                     Address = model.Address,
                     Number = model.Number

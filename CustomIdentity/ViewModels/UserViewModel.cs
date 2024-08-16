@@ -10,7 +10,9 @@ namespace CustomIdentity.ViewModels
         public string? Email { get; set; }
         public string? Name { get; set; }
         public string? Address { get; set; }
-        public string? Password {  get; set; }
+        public string? CurrentPassword {  get; set; }
+        public string? NewPassword { get; set; }
+        public string? ConfirmNewPassword { get; set; }
         public string? Number {  get; set; }
         public IList<string>? Roles { get; set; }
 

@@ -63,7 +63,6 @@ namespace CustomIdentity.Controllers
                 Email = user.Email,
                 Name = user.Name,
                 Address = user.Address,
-                Password = user.Password,
                 Number = user.Number,
                 Roles = roles
             };
@@ -82,12 +81,42 @@ namespace CustomIdentity.Controllers
                     return NotFound();
                 }
 
+                // Check current password
+                var passw = await _userManager.CheckPasswordAsync(user, model.CurrentPassword!);
+                if (!passw)
+                {
+                    ModelState.AddModelError(string.Empty, "Current password is incorrect.");
+                    return View(model);
+                }
+
+                // Validate new password and confirm password
+                if (model.NewPassword != model.ConfirmNewPassword)
+                {
+                    ModelState.AddModelError(string.Empty, "New password and confirmation do not match.");
+                    return View(model);
+                }
+
+                // Change password
+                var changePasswordResult = await _userManager.ChangePasswordAsync(user, model.CurrentPassword!, model.NewPassword!);
+                if (changePasswordResult.Succeeded)
+                {
+                    // Password changed successfully
+                    return RedirectToAction("Index", "Home");
+                }
+
+                // If there are errors, add them to the model state
+                foreach (var error in changePasswordResult.Errors)
+                {
+                    ModelState.AddModelError(string.Empty, error.Description);
+                }
+            
+
+
                 user.UserName = model.UserName;
                 user.Email = model.Email;
                 user.Name = model.Name;
                 user.Address = model.Address;
                 user.Number = model.Number;
-                user.Password = model.Password;
 
                 var result = await _userManager.UpdateAsync(user);
                 if (result.Succeeded)
