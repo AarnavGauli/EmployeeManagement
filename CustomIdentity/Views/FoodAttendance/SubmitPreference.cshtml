@@ -1,125 +1,111 @@
 ﻿@model FoodAttendanceViewModel
-
 @{
     ViewData["Title"] = "Food Preference";
+    // Expect ViewBag.TodayResponsesCount, VegCountToday, NonVegCountToday, CronTime = "HH:mm"
+    var total = (int)(ViewBag.TodayResponsesCount ?? 0);
+    var veg = (int)(ViewBag.VegCountToday ?? 0);
+    var nonveg = (int)(ViewBag.NonVegCountToday ?? 0);
+    var vegPct = total > 0 ? (int)Math.Round(100.0 * veg / total) : 0;
+    var nonvegPct = total > 0 ? 100 - vegPct : 0;
 }
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h2 class="card-title h4 mb-3 text-center">Food Preference</h2>
 
-<div class="text-center">
-    <h2>Food Preference</h2>
+                    @* Success / error messages *@
+                    @if (TempData["Success"] is string s)
+                    {
+                        <div class="alert alert-success" role="alert">@s</div>
+                    }
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div class="alert alert-danger" role="alert">
+                            Please fix the issues below and try again.
+                        </div>
+                    }
 
-    <form method="post" asp-action="SubmitPreference">
-        <div class="btn-group btn-group-toggle" data-toggle="buttons">
-            <label class="btn btn-outline-primary btn-lg">
-                <input type="radio" asp-for="Preference" id="vegCheckbox" value="false" checked /> Veg
-            </label>
-            <label class="btn btn-outline-primary btn-lg">
-                <input type="radio" asp-for="Preference" id="nonVegCheckbox" value="true" /> Non-Veg
-            </label>
+                    <form method="post" asp-action="SubmitPreference" class="text-center" autocomplete="off">
+                        @Html.AntiForgeryToken()
+                        <div class="btn-group btn-group-lg mb-3" role="group" aria-label="Food preference">
+                            <input type="radio" class="btn-check" name="Preference" id="vegRadio" value="false" checked />
+                            <label class="btn btn-outline-success" for="vegRadio">Veg</label>
+
+                            <input type="radio" class="btn-check" name="Preference" id="nonVegRadio" value="true" />
+                            <label class="btn btn-outline-danger" for="nonVegRadio">Non-Veg</label>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary" id="submitBtn">
+                                Submit
+                            </button>
+                        </div>
+
+                        <small class="text-muted d-block mt-2">
+                            Cut-off time: @ViewBag.CronTime AM Nepal Standard Time
+                        </small>
+
+                    </form>
+
+                    @if (ViewBag.TodayResponsesCount != null)
+                    {
+                        <hr class="my-4" />
+                        <h3 class="h6 mb-3 text-center">Today’s Tally</h3>
+
+                        <div class="row text-center mb-2">
+                            <div class="col-4">
+                                <div class="fw-bold">@total</div>
+                                <div class="text-muted small">Total</div>
+                            </div>
+                            <div class="col-4">
+                                <div class="fw-bold">@veg</div>
+                                <div class="text-success small">Veg</div>
+                            </div>
+                            <div class="col-4">
+                                <div class="fw-bold">@nonveg</div>
+                                <div class="text-danger small">Non-Veg</div>
+                            </div>
+                        </div>
+
+                        <div class="progress" role="progressbar" aria-label="Veg vs Non-Veg" aria-valuemin="0" aria-valuemax="100" aria-valuenow="@vegPct">
+                            <div class="progress-bar bg-success" style="width:@vegPct%">Veg @vegPct%</div>
+                            <div class="progress-bar bg-danger" style="width:@nonvegPct%">Non-Veg @nonvegPct%</div>
+                        </div>
+                    }
+                </div>
+            </div>
+            <p class="text-center text-muted mt-3 small">
+                Non-Veg is available only on Fridays. Submissions are locked after the cut-off time.
+            </p>
         </div>
-        <br />
-        <button type="submit" class="btn btn-primary" id="submitbtn">Submit</button>
-
-        
-
-        <br />
-        <br />
-        <br />
-        @if (ViewBag.TodayResponsesCount != null)
-        {
-            <h3>Total Responses Today</h3>
-            <p>Total Food Attendance Responses Today: @ViewBag.TodayResponsesCount</p>
-            <p>Veg Count: @ViewBag.VegCountToday  Non-Veg Count: @ViewBag.NonVegCountToday</p>
-        }
-    </form>
-    <br />
-    <br />
-    <h3>Food Preference Trends</h3>
-    <canvas id="attendanceChart" width="400" height="200"></canvas>
+    </div>
 </div>
 
 @section Scripts {
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            var nonVegCheckbox = document.getElementById("nonVegCheckbox");
-            var vegCheckbox = document.getElementById("vegCheckbox"); // Corrected ID
+            document.addEventListener("DOMContentLoaded", function () {
+            const nonVegRadio = document.getElementById("nonVegRadio");
+            const submitBtn = document.getElementById("submitBtn");
 
-            var today = new Date().getDay();
-            var hour = new Date().getHours();
-
-            // Disable non-veg checkbox if it's not Friday (5)
-            if (today !== 5) {
-                nonVegCheckbox.disabled = true;
+            // Disable Non-Veg except Fridays
+            const today = new Date();
+            if (today.getDay() !== 5) { // Friday = 5
+                nonVegRadio.disabled = true;
             }
 
-            var cronTime = "@ViewBag.CronTime"; // "06:15"
-            var cronHour = parseInt(cronTime.split(':')[0]);
-            var cronMinute = parseInt(cronTime.split(':')[1]);
+            // Nepal Time = UTC+5:45
+            const nowUtc = new Date();
+            const nowNepal = new Date(nowUtc.getTime() + (5*60 + 45) * 60000);
 
-            if (hour >= cronHour ) {
-                submitbtn.disabled = true;
-            }
-            // Disable both checkboxes after 1 PM (13:00 hours)
-            /*if (hour > 13) {
-                submitbtn.disabled = true;
-            }*/
+            const cutoffNepal = new Date(nowNepal);
+            cutoffNepal.setHours(11, 0, 0, 0); // 11:00 AM
+
+            // if (nowNepal >= cutoffNepal) {
+            //     submitBtn.disabled = true;
+            //     submitBtn.title = "Submission window has closed (after 11 AM NPT).";
+            // }
         });
-
-
-
-
-        //Chart
-
-        document.addEventListener("DOMContentLoaded", function () {
-            var ctx = document.getElementById('attendanceChart').getContext('2d');
-
-            // Fetch data from the server
-            fetch('@Url.Action("AttendanceSummary", "FoodAttendance")')
-                .then(response => response.json())
-                .then(data => {
-                    // Sort data by date in ascending order
-                    data.sort((a, b) => new Date(a.date) - new Date(b.date));
-
-                    // Limit to the 30 most recent data points
-                    var limitedData = data.slice(-30);
-
-                    var labels = limitedData.map(item => item.date ? new Date(item.date).toLocaleDateString() : 0);
-                    var counts = limitedData.map(item => item.totalPreferences);
-
-                    new Chart(ctx, {
-                        type: 'line',
-                        data: {
-                            labels: labels,
-                            datasets: [{
-                                label: 'Total Preferences',
-                                data: counts,
-                                borderColor: 'rgba(75, 192, 192, 1)',
-                                backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                                borderWidth: 1
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            scales: {
-                                x: {
-                                    beginAtZero: true,
-                                    maxTicksLimit: 30 // Ensure no more than 30 ticks on the x-axis
-                                },
-                                y: {
-                                    beginAtZero: true,
-                                    ticks: {
-                                        stepSize: 2, // Adjust as needed
-                                        maxTicksLimit: 20 // Ensure no more than 20 ticks on the y-axis
-                                    }
-                                }
-                            }
-                        }
-                    });
-                })
-                .catch(error => console.error('Error fetching data:', error));
-        });
-
     </script>
 }
-
-

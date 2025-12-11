@@ -21,104 +21,110 @@ public class FoodAttendanceController : Controller
         _configuration = configuration;
     }
 
-    
+    private static readonly TimeZoneInfo NepalTz =
+    TimeZoneInfo.FindSystemTimeZoneById("Nepal Standard Time");
+
+    // Returns Nepal-local "now"
+    private static DateTime NowNepal() =>
+        TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, NepalTz);
+
+    // Returns a UTC DateTime that represents 00:00 of the given Nepal-local date
+    // (i.e., the “day anchor” you’ll store in the DB).
+    private static DateTime NepalDayAnchorUtc(DateTime nepalLocalDate) =>
+        TimeZoneInfo.ConvertTimeToUtc(DateTime.SpecifyKind(nepalLocalDate.Date, DateTimeKind.Unspecified), NepalTz);
+
+    private (int hour, int minute) GetCutoffFromConfig()
+    {
+        string submissionTime = _configuration["SparrowSms:SubmissionTime"]!;
+        // Format is "mm HH * * ..." → parts[0] = minutes, parts[1] = hours
+        var parts = submissionTime.Split(' ');
+        int minute = int.Parse(parts[0]);
+        int hour = int.Parse(parts[1]);
+        return (hour, minute);
+    }
+
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
     [Authorize(Roles = "User, Admin")]
     public async Task<IActionResult> SubmitPreference(FoodAttendanceViewModel model)
     {
-        
-            var user = await _userManager.GetUserAsync(User);
-            var today = DateTime.UtcNow.Date; // Use UTC date to avoid timezone issues
+        var nowNpt = NowNepal();
+        var (hour, minute) = GetCutoffFromConfig();
+        var cutoffNpt = nowNpt.Date.AddHours(hour).AddMinutes(minute);
 
-            var UserName = user!.Name;
+        if (nowNpt >= cutoffNpt)
+        {
+            ModelState.AddModelError("", $"The submission window has closed for today (after {hour:D2}:{minute:D2} NPT).");
+            return await SubmitPreference();
+        }
 
-            
+        var user = await _userManager.GetUserAsync(User);
+        if (user is null) return Unauthorized();
 
+        // Non-Veg only on Fridays in Nepal
+        if (model.Preference && nowNpt.DayOfWeek != DayOfWeek.Friday)
+        {
+            ModelState.AddModelError("", "Non-Veg can only be selected on Fridays.");
+            return await SubmitPreference();
+        }
 
-        // Get existing responses for the current day
-        var existingResponses = _context.FoodAttendances
-                .Where(fp => fp.UserId == user.Id && fp.Date == today)
-                .ToList();
+        // Compute the Nepal day anchor in UTC (this is what we store/query)
+        var dayAnchorUtc = NepalDayAnchorUtc(nowNpt);
 
-            // Delete existing responses for the current day (optional, if you want to allow multiple responses per day)
-            _context.FoodAttendances.RemoveRange(existingResponses);
+        // Upsert one record per user per Nepal day
+        var existing = await _context.FoodAttendances
+            .FirstOrDefaultAsync(fp => fp.UserId == user.Id && fp.Date == dayAnchorUtc);
 
-            // Convert the boolean preference to "Yes" or "No"
-            var preferenceValue = model.Preference ? "Non-Veg" : "Veg";
+        var preferenceValue = model.Preference ? "Non-Veg" : "Veg";
 
-            
-
-        var foodAttendance = new FoodAttendance
+        if (existing is null)
+        {
+            _context.FoodAttendances.Add(new FoodAttendance
             {
                 UserId = user.Id,
-                UserName = UserName,
+                UserName = user.Name ?? user.UserName ?? "User",
                 Preference = preferenceValue,
-                Date = today
-            };
+                Date = dayAnchorUtc // Kind=Utc, safe for timestamptz
+            });
+        }
+        else
+        {
+            existing.Preference = preferenceValue;
+            _context.FoodAttendances.Update(existing);
+        }
 
-            _context.FoodAttendances.Add(foodAttendance);
-            await _context.SaveChangesAsync();
-
-            // Fetch the count of responses for today
-            var todayResponsesCount = _context.FoodAttendances
-                .Where(fp => fp.Date == today)
-                .Count();
-
-            ViewBag.TodayResponsesCount = todayResponsesCount;
-
-        var vegCountToday = _context.FoodAttendances
-            .Where(fp => fp.Preference == "Veg" && fp.Date == today)
-            .Count();
-
-        ViewBag.VegCountToday = vegCountToday;
-
-        var nonvegCountToday = _context.FoodAttendances
-            .Where(fp => fp.Preference == "Non-Veg" && fp.Date == today)
-            .Count();
-
-        ViewBag.NonVegCountToday = nonvegCountToday;
-
-
-        return View();    
-        
+        await _context.SaveChangesAsync();
+        TempData["Success"] = "Your preference has been recorded for today.";
+        return RedirectToAction(nameof(SubmitPreference));
     }
 
-   
 
-    // GET method to show the checkbox page
+
     [HttpGet]
     [Authorize(Roles = "User, Admin")]
     public async Task<IActionResult> SubmitPreference()
     {
-        var today = DateTime.UtcNow.Date;
+        // “Today” in Nepal
+        var todayNpt = NowNepal().Date;
+        var dayAnchorUtc = NepalDayAnchorUtc(todayNpt);
 
-        // Fetch the count of responses for today
-        var todayResponsesCount = await _context.FoodAttendances
-            .Where(fp => fp.Date == today)
-            .CountAsync();
+        // Counts for the Nepal day
+        ViewBag.TodayResponsesCount = await _context.FoodAttendances
+            .CountAsync(fp => fp.Date == dayAnchorUtc);
 
-        ViewBag.TodayResponsesCount = todayResponsesCount;
+        ViewBag.VegCountToday = await _context.FoodAttendances
+            .CountAsync(fp => fp.Date == dayAnchorUtc && fp.Preference == "Veg");
 
-        var vegCountToday = _context.FoodAttendances
-            .Where(fp => fp.Preference == "Veg" && fp.Date == today)
-            .Count();
+        ViewBag.NonVegCountToday = await _context.FoodAttendances
+            .CountAsync(fp => fp.Date == dayAnchorUtc && fp.Preference == "Non-Veg");
 
-        ViewBag.VegCountToday = vegCountToday;
-
-        var nonvegCountToday = _context.FoodAttendances
-            .Where(fp => fp.Preference == "Non-Veg" && fp.Date == today)
-            .Count();
-
-        ViewBag.NonVegCountToday = nonvegCountToday;
-
-        // Extract the cron time (6:15 AM UTC from "15 6 * * 1-5")
-        string SubmissionTime = _configuration["SparrowSms:SubmissionTime"]!;
-        var parts = SubmissionTime.Split(' ');
-        string cronTime = $"{parts[1]}:{parts[0]}"; // This gives "06:15"
-
-        ViewBag.CronTime = cronTime;
+        var (hour, minute) = GetCutoffFromConfig();
+        ViewBag.CronTime = $"{hour:D2}:{minute:D2}";
 
         return View();
     }
+
 
 
     [Authorize(Roles = "User, Admin")]

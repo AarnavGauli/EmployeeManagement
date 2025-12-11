@@ -34,7 +34,7 @@ namespace CustomIdentity.Controllers
 
                     if (result.Succeeded)
                     {
-                        return RedirectToAction("Index", "Home");
+                        return RedirectToAction("SubmitPreference", "FoodAttendance");
                     }
                 }
 
@@ -57,7 +57,7 @@ namespace CustomIdentity.Controllers
                 var user = new AppUser
                 {
                     Name = model.Name,
-                    UserName = model.Name,
+                    UserName = model.Email,
                     Email = model.Email,
                     Address = model.Address,
                     Number = model.Number
